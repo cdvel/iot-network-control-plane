@@ -1,0 +1,148 @@
+syntax = "proto3";
+
+package device.v1;
+
+option go_package = "network-control-plane/api/proto/device";
+
+import "google/protobuf/timestamp.proto";
+
+// DeviceService handles device lifecycle
+service DeviceService {
+  // Register a new device with the control plane
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  
+  // Send heartbeat to indicate device is alive
+  rpc Heartbeat(HeartbeatRequest) returns (HeartbeatResponse);
+  
+  // Stream telemetry data from device
+  rpc StreamTelemetry(stream TelemetryData) returns (TelemetryResponse);
+  
+  // Receive configuration updates from control plane
+  rpc GetConfiguration(ConfigRequest) returns (stream Configuration);
+  
+  // Execute command from control plane
+  rpc ExecuteCommand(Command) returns (CommandResponse);
+  
+  // Deregister device
+  rpc Deregister(DeregisterRequest) returns (DeregisterResponse);
+}
+
+// Device registration request
+message RegisterRequest {
+  string mac_address = 1;
+  string ip_address = 2;
+  string hostname = 3;
+  DeviceType type = 4;
+  string firmware_version = 5;
+  map<string, string> metadata = 6;
+  repeated string capabilities = 7;
+}
+
+message RegisterResponse {
+  string device_id = 1;
+  string token = 2;
+  int32 heartbeat_interval_seconds = 3;
+  google.protobuf.Timestamp registered_at = 4;
+}
+
+// Device types
+enum DeviceType {
+  DEVICE_TYPE_UNSPECIFIED = 0;
+  DEVICE_TYPE_ROUTER = 1;
+  DEVICE_TYPE_ACCESS_POINT = 2;
+  DEVICE_TYPE_GATEWAY = 3;
+  DEVICE_TYPE_SWITCH = 4;
+  DEVICE_TYPE_IOT_DEVICE = 5;
+}
+
+// Device status
+enum DeviceStatus {
+  DEVICE_STATUS_UNSPECIFIED = 0;
+  DEVICE_STATUS_ONLINE = 1;
+  DEVICE_STATUS_OFFLINE = 2;
+  DEVICE_STATUS_DEGRADED = 3;
+  DEVICE_STATUS_UNKNOWN = 4;
+}
+
+// Heartbeat request
+message HeartbeatRequest {
+  string device_id = 1;
+  string token = 2;
+  DeviceStatus status = 3;
+  DeviceMetrics metrics = 4;
+}
+
+message HeartbeatResponse {
+  bool acknowledged = 1;
+  int32 next_heartbeat_seconds = 2;
+}
+
+// Device metrics
+message DeviceMetrics {
+  float cpu_usage_percent = 1;
+  float memory_usage_percent = 2;
+  int64 uptime_seconds = 3;
+  int64 bytes_sent = 4;
+  int64 bytes_received = 5;
+  int32 connected_clients = 6;
+  map<string, string> custom_metrics = 7;
+}
+
+// Telemetry data
+message TelemetryData {
+  string device_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string event_type = 3;
+  map<string, string> data = 4;
+}
+
+message TelemetryResponse {
+  bool acknowledged = 1;
+}
+
+// Configuration
+message ConfigRequest {
+  string device_id = 1;
+  string token = 2;
+}
+
+message Configuration {
+  string config_id = 1;
+  int32 version = 2;
+  map<string, string> settings = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// Commands
+message Command {
+  string command_id = 1;
+  string device_id = 2;
+  CommandType type = 3;
+  map<string, string> parameters = 4;
+  int32 timeout_seconds = 5;
+}
+
+enum CommandType {
+  COMMAND_TYPE_UNSPECIFIED = 0;
+  COMMAND_TYPE_REBOOT = 1;
+  COMMAND_TYPE_UPDATE_FIRMWARE = 2;
+  COMMAND_TYPE_RUN_DIAGNOSTICS = 3;
+  COMMAND_TYPE_RESET_CONFIG = 4;
+}
+
+message CommandResponse {
+  string command_id = 1;
+  bool success = 2;
+  string message = 3;
+  map<string, string> result = 4;
+}
+
+message DeregisterRequest {
+  string device_id = 1;
+  string token = 2;
+  string reason = 3;
+}
+
+message DeregisterResponse {
+  bool acknowledged = 1;
+}
