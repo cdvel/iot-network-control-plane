@@ -11,23 +11,29 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	device "network-control-plane/api/proto"
+	"network-control-plane/pkg/config"
 	"network-control-plane/pkg/health"
 	"network-control-plane/pkg/registry"
+	"network-control-plane/pkg/telemetry"
 )
 
 // DeviceServer implements the DeviceService gRPC interface
 type DeviceServer struct {
 	device.UnimplementedDeviceServiceServer
-	registry *registry.Registry
-	health   *health.Checker
-	log      *logrus.Logger
+	registry  *registry.Registry
+	health    *health.Checker
+	config    *config.Manager
+	telemetry *telemetry.Collector
+	log       *logrus.Logger
 }
 
-func NewDeviceServer(registry *registry.Registry, health *health.Checker, log *logrus.Logger) *DeviceServer {
+func NewDeviceServer(registry *registry.Registry, health *health.Checker, config *config.Manager, telemetry *telemetry.Collector, log *logrus.Logger) *DeviceServer {
 	return &DeviceServer{
-		registry: registry,
-		health:   health,
-		log:      log,
+		registry:  registry,
+		health:    health,
+		config:    config,
+		telemetry: telemetry,
+		log:       log,
 	}
 }
 
@@ -101,8 +107,10 @@ func (s *DeviceServer) StreamTelemetry(stream device.DeviceService_StreamTelemet
 			"event_type": data.EventType,
 		}).Debug("Telemetry received")
 
-		// Process telemetry data (store, aggregate, etc.)
-		// For now, just log it
+		// Collect telemetry data
+		if err := s.telemetry.Collect(data.DeviceId, data); err != nil {
+			s.log.WithError(err).WithField("device_id", data.DeviceId).Error("Failed to collect telemetry")
+		}
 	}
 }
 
@@ -113,12 +121,11 @@ func (s *DeviceServer) GetConfiguration(req *device.ConfigRequest, stream device
 	// Verify token
 	// In a real implementation, we'd validate the token here
 
-	// Send initial configuration
-	config := &device.Configuration{
-		ConfigId:   "default-config",
-		Version:    1,
-		CreatedAt:  &timestamppb.Timestamp{Seconds: time.Now().Unix()},
-		Settings:   map[string]string{},
+	// Get configuration for the device
+	config, err := s.config.GetDeviceConfig(req.DeviceId)
+	if err != nil {
+		s.log.WithError(err).WithField("device_id", req.DeviceId).Error("Failed to get device configuration")
+		return err
 	}
 
 	if err := stream.Send(config); err != nil {
@@ -202,16 +209,20 @@ func (s *DeviceServer) Deregister(ctx context.Context, req *device.DeregisterReq
 
 // RESTServer provides HTTP REST endpoints
 type RESTServer struct {
-	registry *registry.Registry
-	health   *health.Checker
-	log      *logrus.Logger
+	registry  *registry.Registry
+	health    *health.Checker
+	config    *config.Manager
+	telemetry *telemetry.Collector
+	log       *logrus.Logger
 }
 
-func NewRESTServer(registry *registry.Registry, health *health.Checker, log *logrus.Logger) *RESTServer {
+func NewRESTServer(registry *registry.Registry, health *health.Checker, config *config.Manager, telemetry *telemetry.Collector, log *logrus.Logger) *RESTServer {
 	return &RESTServer{
-		registry: registry,
-		health:   health,
-		log:      log,
+		registry:  registry,
+		health:    health,
+		config:    config,
+		telemetry: telemetry,
+		log:       log,
 	}
 }
 

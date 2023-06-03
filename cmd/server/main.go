@@ -17,9 +17,11 @@ import (
 
 	device "network-control-plane/api/proto"
 	"network-control-plane/internal/metrics"
+	"network-control-plane/pkg/config"
 	"network-control-plane/pkg/health"
 	"network-control-plane/pkg/registry"
 	"network-control-plane/pkg/server"
+	"network-control-plane/pkg/telemetry"
 )
 
 func main() {
@@ -34,11 +36,13 @@ func main() {
 	// Initialize components
 	deviceRegistry := registry.NewRegistry(log)
 	healthChecker := health.NewChecker(deviceRegistry, log)
-	
+	configManager := config.NewManager(log)
+	telemetryCollector := telemetry.NewCollector(log)
+
 	// Start health check monitor
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	
+
 	go healthChecker.Start(ctx)
 
 	// gRPC server
@@ -49,8 +53,8 @@ func main() {
 			Timeout: 10 * time.Second,
 		}),
 	)
-	
-	deviceService := server.NewDeviceServer(deviceRegistry, healthChecker, log)
+
+	deviceService := server.NewDeviceServer(deviceRegistry, healthChecker, configManager, telemetryCollector, log)
 	device.RegisterDeviceServiceServer(grpcServer, deviceService)
 	
 	listener, err := net.Listen("tcp", fmt.Sprintf(":%d", *port))
@@ -67,7 +71,7 @@ func main() {
 	}()
 
 	// REST API server
-	restServer := server.NewRESTServer(deviceRegistry, healthChecker, log)
+	restServer := server.NewRESTServer(deviceRegistry, healthChecker, configManager, telemetryCollector, log)
 	httpMux := http.NewServeMux()
 	httpMux.HandleFunc("/api/v1/devices", restServer.ListDevices)
 	httpMux.HandleFunc("/api/v1/devices/", restServer.GetDevice)
