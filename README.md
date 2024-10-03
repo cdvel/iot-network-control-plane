@@ -46,17 +46,22 @@ graph TB
 
 ## Features
 
-- ✅ gRPC-based device communication
-- ✅ Real-time health monitoring
-- ✅ Device registry with metadata
-- ✅ Configuration distribution and management
-- ✅ Telemetry collection and aggregation
-- ✅ REST API for queries and monitoring
-- ✅ Prometheus metrics
-- ✅ Docker-based deployment
-- ✅ Device command & control
-- ✅ Health status tracking (online/offline/degraded)
-- ✅ Fleet statistics and monitoring
+### Core
+
+-  gRPC-based device communication
+-  Real-time health monitoring
+-  Device registry with metadata
+-  Configuration distribution and management
+-  Telemetry collection and aggregation
+-  REST API for queries and monitoring
+
+### Monitoring
+
+-  Prometheus metrics
+-  Docker-based deployment
+-  Device command & control
+-  Health status tracking (online/offline/degraded)
+-  Fleet statistics and monitoring
 
 ## Quick Start
 
