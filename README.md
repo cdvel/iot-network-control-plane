@@ -336,24 +336,11 @@ Kubernetes deployment files are available in `deploy/kubernetes/` for production
 ## Future Enhancements
 
 - [ ] Persistent storage (etcd/PostgreSQL)
-- [ ] Multi-region support
 - [ ] Firmware update orchestration
-- [ ] Advanced analytics dashboard
 - [ ] Authentication and authorization (mTLS)
 - [ ] Device command audit trails
 - [ ] Advanced configuration templating
 - [ ] Real-time alerting system
-
-## Relevance to Network Ecosystem
-
-This control plane demonstrates patterns applicable to managing network device ecosystems like ASUS routers, mesh Wi-Fi systems, and IoT gateways. Key capabilities:
-
-- Device lifecycle management
-- Health monitoring at scale
-- Configuration distribution
-- Real-time telemetry
-- Fault detection and recovery
-- Command & control capabilities
 
 ## License
 
