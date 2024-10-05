@@ -2,7 +2,7 @@
 
 > Cloud-native control plane for distributed network device management
 
-[![Go Report Card](https://goreportcard.com/badge/github.com/yourusername/network-control-plane)](https://goreportcard.com/report/github.com/yourusername/network-control-plane)
+[![Go Report Card](https://goreportcard.com/badge/github.com/cdvel/iot-network-control-plane)](https://goreportcard.com/report/github.com/cdvel/iot-network-control-plane)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Overview
