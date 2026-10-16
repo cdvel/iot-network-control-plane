@@ -75,8 +75,8 @@ graph TB
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd network-control-plane
+git clone https://github.com/cdvel/iot-network-control-plane.git
+cd iot-network-control-plane
 
 # Install dependencies
 make dev-setup
